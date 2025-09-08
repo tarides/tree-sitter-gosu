@@ -1,0 +1,40 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "gosu",
+      "camelcase": "Gosu",
+      "title": "Gosu",
+      "scope": "source.gosu",
+      "file-types": [
+        "gosu"
+      ],
+      "injection-regex": "^gosu$",
+      "class-name": "TreeSitterGosu"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "UNLICENSED",
+    "description": "Gosu is a statically typed general-purpose programming language that runs on the Java Virtual Machine.",
+    "authors": [
+      {
+        "name": "Marek Kubica",
+        "email": "marek@tarides.com",
+        "url": "https://tarides.com/"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/tarides/tree-sitter-gosu"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true,
+    "zig": false
+  }
+}
