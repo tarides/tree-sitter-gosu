@@ -26,6 +26,12 @@ const PossiblyEmpty = {
   optionalArguments: $ => optional($.arguments),
 };
 
+// These patterns are used in the "Ident" rule. In order to make that rule
+// produce a token these can't be rules themselves as tokens must composed of
+// only terminal rules.
+const Digit = /[0-9]/;
+const Letter = /[A-Za-z_$]/;
+
 module.exports = grammar({
   name: "gosu",
 
@@ -133,9 +139,10 @@ module.exports = grammar({
       // are already naturally matched by "Ident".
       return $.Ident;
     },
-    Ident: $ => {
-      // Right associative so parsing identifiers ends as late as possible.
-      return prec.right(seq($.Letter, repeat(choice($.Digit, $.Letter))));
+    Ident: _ => {
+      // Identifiers are defined as "tokens" which prevents them from being
+      // split when an identifier happens to contain a keyword.
+      return token(seq(Letter, repeat(choice(Digit, Letter))));
     },
     NumberLiteral: $ => choice("NaN", "Infinity", $.HexLiteral, $.BinLiteral, $.IntOrFloatPointLiteral),
     BinLiteral: $ => seq(choice("0b", "0B"), choice("0", "1"), repeat(choice("0", "1")), optional($.IntegerTypeSuffix)),
@@ -163,8 +170,7 @@ module.exports = grammar({
     StringLiteral: $ => choice(seq("'", repeat(choice($.EscapeSequence, $.any_character)), "'"), seq('"', repeat(choice($.EscapeSequence, $.any_character)), '"')),
     HexDigit: $ => choice($.Digit, /[A-F]/, /[a-f]/),
     IntegerTypeSuffix: _ => choice("l", "L", "s", "S", "bi", "BI", "b", "B"),
-    Letter: _ => /[A-Za-z_$]/,
-    Digit: _ => /[0-9]/,
+    Digit: _ => Digit,
     ZeroToSeven: _ => /[0-7]/,
     Exponent: $ => seq(choice("e", "E"), optional(choice("+", "-")), $.Digit, repeat($.Digit)),
     FloatTypeSuffix: _ => choice("f", "F", "d", "D", "bd", "BD"),
