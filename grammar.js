@@ -18,7 +18,7 @@ const PossiblyEmpty = {
   start: $ => seq(PossiblyEmpty.header($), PossiblyEmpty.modifiers($), choice($.gClass)), // XXX incomplete
   header: $ => seq(optional(seq("package", $.namespaceStatement)), optional($.usesStatementList)),
   modifiers: $ => repeat(choice($.annotation, "private", "internal", "protected", "public", "static", "abstract", "override", "final", "transient")),
-  optionalType: $ => optional(seq(":", $.typeLiteral)), // XXX incomplete
+  optionalType: $ => optional(choice(seq(":", $.typeLiteral), $.blockTypeLiteral)),
   indirectMemberAccess: $ => repeat(choice($.arguments)), // XXX incomplete
   typeVariableDefs: $ => optional(seq("<", $.typeVariableDefinition, repeat(seq(",", $.typeVariableDefinition)), ">")),
   typeArguments: $ => optional(seq("<", $.typeArgument, repeat(seq(",", $.typeArgument)), ">")),
@@ -56,7 +56,11 @@ module.exports = grammar({
     ), // XXX incomplete
     classBody: $ => seq("{", PossiblyEmpty.classMembers($), "}"),
     // "classMembers" is possibly empty
-    declaration: $ => seq(PossiblyEmpty.modifiers($), choice($.fieldDefn), optional(";")), // XXX incomplete
+    declaration: $ => seq(PossiblyEmpty.modifiers($), choice(
+      seq($.functionDefn, optional($.functionBody)),
+      seq($.constructorDefn, $.functionBody),
+      $.fieldDefn,
+    ), optional(";")), // XXX incomplete
     // "optionalType" is possibly empty
     fieldDefn: $ => seq("var", $.id, PossiblyEmpty.optionalType($), optional(seq("as", optional("readonly"), $.id)), optional(seq("=", $.expression))),
     dotPathWord: $ => prec.right(seq($.idAll, repeat(seq(".", $.idAll)))),
@@ -64,6 +68,10 @@ module.exports = grammar({
     usesStatementList: $ => seq("uses", $.usesStatement, repeat(seq("uses", $.usesStatement))),
     usesStatement: $ => seq($.dotPathWord, optional(seq(".", "*")), repeat(";")),
     typeVariableDefinition: $ => seq($.id, optional(seq("extends", $.typeLiteralList))),
+    functionBody: $ => $.statementBlock,
+    parameters: $ => seq("(", optional($.parameterDeclarationList), ")"),
+    functionDefn: $ => seq("function", $.id, PossiblyEmpty.typeVariableDefs($), $.parameters, optional(seq(":", $.typeLiteral))),
+    constructorDefn: $ => seq("construct", $.parameters, optional(seq(":", $.typeLiteral))),
     statement: $ => {
       // Gosu's grammar explicitly that statements may end with semicolons, but
       // also that a semicolon on its own is a statement. This is ambiguous
@@ -71,9 +79,17 @@ module.exports = grammar({
       // two statements: `foo;`. Statements are parsed right-associatively so
       // that statements ending with semicolons are treated as single
       // statements rather than a pair of statements.
-      return choice(prec.right(seq(choice($.localVarStatement, $.assignmentOrMethodCall), optional(";"))), ";"); // XXX incomplete
+      return choice(prec.right(seq(choice(
+        $.localVarStatement,
+        $.returnStatement,
+        $.assignmentOrMethodCall,
+      ), optional(";"))), ";"); // XXX incomplete
     },
-    localVarStatement: $ => seq("var", $.id, PossiblyEmpty.optionalType($), optional(seq("=", $.expression))),
+    returnStatement: $ => prec.right(seq("return", optional($.expression))),
+    localVarStatement: $ => {
+      // XXX check that it's correct for this to be right-associative
+      return prec.right(seq("var", $.id, PossiblyEmpty.optionalType($), optional(seq("=", $.expression))));
+    },
     assignmentOrMethodCall: $ => {
       // Without specifying an associativity for this rule the grammar
       // ambiguous. An example of the ambiguity is whether the following should
@@ -83,35 +99,85 @@ module.exports = grammar({
       // optional. The choice of right associativity here treats the example
       // text as a single statement since otherwise function calls would not be
       // parsed as such.
-      return prec.right(seq(choice($.typeLiteralExpr, $.parenthExpr, $.StringLiteral), PossiblyEmpty.indirectMemberAccess($))); // XXX incomplete
+      return prec.right(seq(
+        choice($.typeLiteralExpr, $.parenthExpr, $.StringLiteral),
+        PossiblyEmpty.indirectMemberAccess($),
+        optional(choice(
+          $.incrementOp,
+          seq($.assignmentOp, $.expression),
+        )),
+      )); // XXX incomplete
     },
-    typeLiteral: $ => seq($.type, optional(seq("&", $.type))),
+    statementBlock: $ => $.statementBlockBody,
+    statementBlockBody: $ => seq("{", repeat($.statement), "}"),
+    blockTypeLiteral: $ => $.blockLiteral,
+    blockLiteral: $ => {
+      // XXX check that it's correct for this to be right-associative
+      return prec.right(seq("(", optional(seq($.blockLiteralArg, repeat(seq(",", $.blockLiteralArg)))), ")", optional(seq(":", $.typeLiteral))));
+    },
+    blockLiteralArg: $ => choice(
+      seq($.id, optional(choice(seq("=", $.expression), $.blockTypeLiteral))),
+      seq(optional(seq($.id, ":")), $.typeLiteral, optional(seq("=", $.expression))),
+    ),
+    typeLiteral: $ => {
+      // XXX check that the "&" operator is indeed left-associative
+      return prec.left(seq($.type, optional(seq("&", $.type))));
+    },
     typeLiteralType: $ => $.typeLiteral,
     typeLiteralExpr: $ => $.typeLiteral,
     typeLiteralList: $ => $.typeLiteral,
-    type: $ => $.classOrInterfaceType, // XXX incomplete
-    classOrInterfaceType: $ => seq($.idclassOrInterfaceType, PossiblyEmpty.typeArguments($), repeat(seq(".", $.id, PossiblyEmpty.typeArguments($)))),
+    type: $ => choice(seq($.classOrInterfaceType, repeat(seq("[", "]"))), seq("block", $.blockLiteral)),
+    classOrInterfaceType: $ => {
+      // XXX is it correct that this is right-associative?
+      return prec.right(seq($.idclassOrInterfaceType, PossiblyEmpty.typeArguments($), repeat(seq(".", $.id, PossiblyEmpty.typeArguments($)))));
+    },
     // "typeArguments" is possibly empty
     typeArgument: $ => choice($.typeLiteralType, seq("?", optional(seq(choice("extends", "super"), $.typeLiteralType)))),
     expression: $ => $.conditionalExpr,
-    conditionalExpr: $ => $.conditionalOrExpr, // XXX incomplete
-    conditionalOrExpr: $ => $.conditionalAndExpr, // XXX incomplete
-    conditionalAndExpr: $ => $.bitwiseOrExpr, // XXX incomplete
-    bitwiseOrExpr: $ => $.bitwiseXorExpr, // XXX incomplete
-    bitwiseXorExpr: $ => $.bitwiseAndExpr, // XXX incomplete
-    bitwiseAndExpr: $ => $.equalityExpr, // XXX incomplete
-    equalityExpr: $ => $.relationalExpr, // XXX incomplete
-    relationalExpr: $ => $.intervalExpr, // XXX incomplete
-    intervalExpr: $ => $.bitshiftExpr, // XXX incomplete
-    bitshiftExpr: $ => $.additiveExpr, // XXX incomplete
-    additiveExpr: $ => $.multiplicativeExpr, // XXX incomplete
-    multiplicativeExpr: $ => $.typeAsExpr, // XXX incomplete
-    typeAsExpr: $ => $.unaryExpr, // XXX incomplete
-    unaryExpr: $ => $.unaryExprNotPlusMinus, // XXX incomplete
-    unaryExprNotPlusMinus: $ => $.primaryExpr, // XXX incomplete
-    featureLiteral: $ => seq("#", choice($.id, "construct"), PossiblyEmpty.typeArguments($), PossiblyEmpty.optionalArguments($)),
-    primaryExpr: $ => choice($.literal, $.typeLiteralExpr), // XXX incomplete
+    conditionalExpr: $ => {
+      // XXX check that the associativity is correct
+      return prec.right(seq($.conditionalOrExpr, optional(choice(seq("?", $.conditionalExpr, ":", $.conditionalExpr), seq("?:", $.conditionalExpr)))));
+    },
+    conditionalOrExpr: $ => prec.left(seq($.conditionalAndExpr, repeat(seq($.orOp, $.conditionalAndExpr)))),
+    conditionalAndExpr: $ => prec.left(seq($.bitwiseOrExpr, repeat(seq($.andOp, $.bitwiseOrExpr)))),
+    bitwiseOrExpr: $ => prec.left(seq($.bitwiseXorExpr, repeat(seq("|", $.bitwiseXorExpr)))),
+    bitwiseXorExpr: $ => prec.left(seq($.bitwiseAndExpr, repeat(seq("^", $.bitwiseAndExpr)))),
+    bitwiseAndExpr: $ => prec.left(seq($.equalityExpr, repeat(seq("&", $.equalityExpr)))),
+    equalityExpr: $ => prec.left(seq($.relationalExpr, repeat(seq($.equalityOp, $.relationalExpr)))),
+    relationalExpr: $ => prec.left(seq($.intervalExpr, repeat(choice(seq($.relOp, $.intervalExpr), seq("typeis", $.typeLiteralType))))),
+    intervalExpr: $ => prec.left(seq($.bitshiftExpr, optional(seq($.intervalOp, $.bitshiftExpr)))),
+    bitshiftExpr: $ => prec.left(seq($.additiveExpr, repeat(seq($.bitshiftOp, $.additiveExpr)))),
+    additiveExpr: $ => prec.left(seq($.multiplicativeExpr, repeat(seq($.additiveOp, $.multiplicativeExpr)))),
+    multiplicativeExpr: $ => prec.left(seq($.typeAsExpr, repeat(seq($.multiplicativeOp, $.typeAsExpr)))),
+    typeAsExpr: $ => prec.left(seq($.unaryExpr, repeat(seq($.typeAsOp, $.unaryExpr)))),
+    unaryExpr: $ => choice(seq(choice("+", "-", "!-"), $.unaryExprNotPlusMinus), $.unaryExprNotPlusMinus),
+    unaryExprNotPlusMinus: $ => choice(seq($.unaryOp, $.unaryExpr), seq("\\", $.blockExpr), $.evalExpr, $.primaryExpr),
+    blockExpr: $ => seq(optional($.parameterDeclarationList), "->", choice($.expression, $.statementBlock)),
+    evalExpr: $ => seq("eval", "(", $.expression, ")"),
+    featureLiteral: $ => {
+      // XXX check that it's correct for this to be right-associative
+      return prec.right(seq("#", choice($.id, "construct"), PossiblyEmpty.typeArguments($), PossiblyEmpty.optionalArguments($)));
+    },
+    primaryExpr: $ => {
+      // XXX check that it's correct for this to be right-associative
+      return prec.right(seq(choice(
+        $.literal,
+        $.typeLiteralExpr,
+        $.parenthExpr,
+      ), PossiblyEmpty.indirectMemberAccess($))); // XXX incomplete
+    },
     parenthExpr: $ => seq("(", $.expression, ")"),
+    parameterDeclarationList: $ => seq($.parameterDeclaration, repeat(seq(",", $.parameterDeclaration))),
+    parameterDeclaration: $ => seq(
+      repeat($.annotation),
+      optional("final"),
+      $.id,
+      optional(choice(
+        seq(":", $.typeLiteral, optional(seq("=", $.expression))),
+        $.blockTypeLiteral,
+        seq("=", $.expression),
+      )),
+    ),
     annotationArguments: $ => $.arguments,
     // "optionArguments" is possibly empty
     arguments: $ => seq("(", optional(seq($.argExpression, repeat(seq(", ", $.argExpression)))), ")"),
@@ -133,12 +199,14 @@ module.exports = grammar({
     id: $ => {
       // Gosu's grammar explicitly matches keywords with this rule but keywords
       // are already naturally matched by "Ident".
-      return $.Ident;
+      // XXX arbitrarily gave "id" precedence over "idclassOrInterfaceType". Need to check if this is correct.
+      return prec(1, $.Ident);
     },
     idclassOrInterfaceType: $ => {
       // Gosu's grammar explicitly matches keywords with this rule but keywords
       // are already naturally matched by "Ident".
-      return $.Ident;
+      // XXX is it correct that this is left associative?
+      return prec.left($.Ident);
     },
     idAll: $ => {
       // Gosu's grammar explicitly matches keywords with this rule but keywords
