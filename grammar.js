@@ -35,6 +35,12 @@ const Letter = /[A-Za-z_$]/;
 module.exports = grammar({
   name: "gosu",
 
+  extras: $ => [
+    $.WS,
+    $.COMMENT,
+    $.LINE_COMMENT,
+  ],
+
   rules: {
     source_file: $ => PossiblyEmpty.start($),
     // "start" is possibly empty
@@ -178,5 +184,8 @@ module.exports = grammar({
     OctalEscape: $ => choice(seq("\\", /0-3/, $.ZeroToSeven, $.ZeroToSeven), seq("\\", $.ZeroToSeven, $.ZeroToSeven), seq("\\", $.ZeroToSeven)),
     UnicodeEscape: $ => seq("\\u", $.HexDigit, $.HexDigit, $.HexDigit, $.HexDigit),
     any_character: _ => /./,
+    WS: _ => /\s/,
+    COMMENT: _ => /\/\*([^\*]|(\*[^\/]))*\*\//,
+    LINE_COMMENT: _ => /\/\/[^\n\r]*/,
   }
 });
