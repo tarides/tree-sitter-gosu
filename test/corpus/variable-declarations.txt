@@ -1,0 +1,59 @@
+==================
+Value declarations
+==================
+
+public class Foo {
+  var _bar as Bar = "bar" // the 'as Bar' exposes this field as the property Bar
+}
+
+---
+
+(source_file
+(WS)
+(WS)
+(gClass
+(WS)
+(id
+    (Ident))
+(WS)
+(classBody
+    (WS)
+    (WS)
+    (WS)
+    (declaration
+    (fieldDefn
+        (WS)
+        (id
+        (Ident))
+        (WS)
+        (WS)
+        (id
+        (Ident))
+        (WS)
+        (WS)
+        (expression
+        (conditionalExpr
+            (conditionalOrExpr
+            (conditionalAndExpr
+                (bitwiseOrExpr
+                (bitwiseXorExpr
+                    (bitwiseAndExpr
+                    (equalityExpr
+                        (relationalExpr
+                        (intervalExpr
+                            (bitshiftExpr
+                            (additiveExpr
+                                (multiplicativeExpr
+                                (typeAsExpr
+                                    (unaryExpr
+                                    (unaryExprNotPlusMinus
+                                        (primaryExpr
+                                        (literal
+                                            (StringLiteral
+                                            (any_character)
+                                            (any_character)
+                                            (any_character))))))))))))))))))))))
+    (WS)
+    (LINE_COMMENT)
+    (WS)))
+(WS))
