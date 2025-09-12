@@ -258,8 +258,8 @@ module.exports = grammar({
       return prec.right(choice(seq($.classOrInterfaceType, repeat(seq("[", "]"))), seq("block", $.blockLiteral)));
     },
     classOrInterfaceType: $ => {
-      // XXX is it correct that this is right-associative?
-      return prec.right(seq($.idclassOrInterfaceType, PossiblyEmpty.typeArguments($), repeat(seq(".", $.id, PossiblyEmpty.typeArguments($)))));
+      // XXX is it correct that this is left-associative?
+      return prec.left(seq($.idclassOrInterfaceType, PossiblyEmpty.typeArguments($), repeat(seq(".", $.id, PossiblyEmpty.typeArguments($)))));
     },
     // "typeArguments" is possibly empty
     typeArgument: $ => choice($.typeLiteralType, seq("?", optional(seq(choice("extends", "super"), $.typeLiteralType)))),
