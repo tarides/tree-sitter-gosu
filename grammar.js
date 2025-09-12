@@ -298,7 +298,7 @@ module.exports = grammar({
       )),
     ),
     annotationArguments: $ => $.arguments,
-    arguments: $ => seq("(", optional(seq($.argExpression, repeat(seq(", ", $.argExpression)))), ")"),
+    arguments: $ => seq("(", optional(seq($.argExpression, repeat(seq(",", $.argExpression)))), ")"),
     // "optionArguments" is possibly empty
     argExpression: $ => choice($.namedArgExpression, $.expression),
     namedArgExpression: $ => seq(":", $.id, "=", $.expression),
