@@ -70,7 +70,7 @@ module.exports = grammar({
   ],
 
   rules: {
-    source_file: $ => PossiblyEmpty.start($),
+    source_file: $ => optional(PossiblyEmpty.start($)),
     // "start" is possibly empty
     // "header" is possibly empty
     annotation: $ => seq("@", $.idAll, repeat(seq(".", $.idAll)), optional($.annotationArguments)),
@@ -410,9 +410,11 @@ module.exports = grammar({
       // In Gosu's syntax, char literals have the same syntax as
       // single-character single-quoted string literals. Give char literals
       // higher precedence to break the conflict.
-      return  prec(1, seq("'", choice($.EscapeSequence, $.any_character), "'"));
+      return  prec(1, seq("'", choice($.EscapeSequence, /[^'\\]/), "'"));
     },
-    StringLiteral: $ => choice(seq("'", repeat(choice($.EscapeSequence, $.any_character)), "'"), seq('"', repeat(choice($.EscapeSequence, $.any_character)), '"')),
+    StringLiteral: $ => choice(
+      seq("'", repeat(choice($.EscapeSequence, /[^'\\]+/)), "'"),
+      seq('"', repeat(choice($.EscapeSequence, /[^"\\]+/)), '"')),
     HexDigit: $ => choice($.Digit, /[A-F]/, /[a-f]/),
     IntegerTypeSuffix: _ => choice("l", "L", "s", "S", "bi", "BI", "b", "B"),
     // "Letter" is defined above
@@ -424,10 +426,6 @@ module.exports = grammar({
     EscapeSequence: $ => choice(seq("\\", choice("v", "a", "b", "t", "n", "f", "r", '"', "'", "\\", "$", "<")), $.UnicodeEscape, $.OctalEscape),
     OctalEscape: $ => choice(seq("\\", /0-3/, $.ZeroToSeven, $.ZeroToSeven), seq("\\", $.ZeroToSeven, $.ZeroToSeven), seq("\\", $.ZeroToSeven)),
     UnicodeEscape: $ => seq("\\u", $.HexDigit, $.HexDigit, $.HexDigit, $.HexDigit),
-    any_character: _ => {
-      // This rule is not defined in Gosu's grammar but it is used. Assuming it's equivalent to the "." in common regex syntax.
-      return /./;
-    },
     WS: _ => /\s/,
     COMMENT: _ => /\/\*([^\*]|(\*[^\/]))*\*\//,
     LINE_COMMENT: _ => /\/\/[^\n\r]*/,
