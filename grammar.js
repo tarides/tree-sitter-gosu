@@ -431,3 +431,29 @@ module.exports = grammar({
     LINE_COMMENT: _ => /\/\/[^\n\r]*/,
   }
 });
+
+// `optionalSeq(a, b, c, ...)` is
+// `choice(
+//   seq(a, optional(b), optional(c)),
+//   seq(optional(a), b, optional(c)),
+//   seq(optional(a), optional(b), c)
+//  )`
+//  This gives us a tree-sitter compatible representation of rules like
+//  `header = ["package" namespaceStatement] [usesStatementList] .`
+//  where every subrule in the sequence is optional.
+function optionalSeq(...rules) {
+  if (rules.length === 0) {
+    throw new Error("optionalSeq requires at least one rule.");
+  }
+  if (rules.length === 1) {
+    seq(rules[0])
+  }
+  let optional_rules =
+    rules.map((_, i) =>
+      rules.map((r, j) =>
+        i === j ? r : optional(r)
+      )
+    )
+
+  return choice(...optional_rules)
+}
