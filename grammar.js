@@ -15,8 +15,6 @@
 // for the start rule. These functions can be called in other rules but cannot
 // be a rule on their own.
 const PossiblyEmpty = {
-  start: $ => seq(PossiblyEmpty.header($), PossiblyEmpty.modifiers($), choice($.gClass, $.gInterfaceOrStructure, $.gEnum, $.gEnhancement)),
-  header: $ => seq(optional(seq("package", $.namespaceStatement)), optional($.usesStatementList)),
   modifiers: $ => repeat(choice($.annotation, "private", "internal", "protected", "public", "static", "abstract", "override", "final", "transient")),
   optionalType: $ => optional(choice(seq(":", $.typeLiteral), $.blockTypeLiteral)),
   indirectMemberAccess: $ => repeat(choice(
@@ -70,9 +68,20 @@ module.exports = grammar({
   ],
 
   rules: {
-    source_file: $ => optional(PossiblyEmpty.start($)),
-    // "start" is possibly empty
-    // "header" is possibly empty
+    start: $ => seq(
+      optional($.header),
+      optional($.modifiers),
+      choice($.gClass, $.gInterfaceOrStructure, $.gEnum, $.gEnhancement),
+    ),
+    header: $ => optionalSeq(
+      seq("package", $.namespaceStatement),
+      $.usesStatementList
+    ),
+
+    modifiers: $ =>
+      repeat1(choice($.annotation, "private", "internal", "protected", "public",
+        "static", "abstract", "override", "final", "transient")),
+
     annotation: $ => seq("@", $.idAll, repeat(seq(".", $.idAll)), optional($.annotationArguments)),
     gClass: $ => seq(
       "class",
@@ -445,15 +454,16 @@ function optionalSeq(...rules) {
   if (rules.length === 0) {
     throw new Error("optionalSeq requires at least one rule.");
   }
-  if (rules.length === 1) {
-    seq(rules[0])
-  }
-  let optional_rules =
-    rules.map((_, i) =>
-      rules.map((r, j) =>
-        i === j ? r : optional(r)
+  let optional_rules = rules.map(
+    (_, non_optional_rule_idx) => {
+      let all_but_one_rule_optional = rules.map(
+        (rule, rule_idx) =>
+          non_optional_rule_idx === rule_idx
+            ? rule
+            : optional(rule)
       )
-    )
-
+      return seq(...all_but_one_rule_optional)
+    }
+  )
   return choice(...optional_rules)
 }

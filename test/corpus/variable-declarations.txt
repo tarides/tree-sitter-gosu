@@ -8,8 +8,9 @@ public class Foo {
 
 ---
 
-(source_file
+(start
   (WS)
+  (modifiers)
   (WS)
   (gClass
     (WS)
