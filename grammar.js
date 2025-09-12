@@ -80,16 +80,69 @@ module.exports = grammar({
       // that statements ending with semicolons are treated as single
       // statements rather than a pair of statements.
       return choice(prec.right(seq(choice(
-        $.localVarStatement,
+        $.ifStatement,
+        $.tryCatchFinallyStatement,
+        $.throwStatement,
+        "continue",
+        "break",
         $.returnStatement,
+        $.forEachStatement,
+        $.whileStatement,
+        $.doWhileStatement,
+        $.switchStatement,
+        $.usingStatement,
+        $.assertStatement,
+        seq("final", $.localVarStatement),
+        $.localVarStatement,
+        $.evalExpr,
         $.assignmentOrMethodCall,
-      ), optional(";"))), ";"); // XXX incomplete
+        $.statementBlock,
+      ), optional(";"))), ";");
     },
+    ifStatement: $ => {
+      // Right-associative so that the semicolon after the statement is considered part of the if-statement
+      return prec.right(seq("if", "(", $.expression, ")", $.statement, optional(";"), optional(seq("else", $.statement))));
+    },
+    tryCatchFinallyStatement: $ => seq("try", $.statementBlock, choice(
+      seq($.catchClause, repeat($.catchClause), optional(seq("finally", $.statementBlock))),
+      seq("finally", $.statementBlock),
+    )),
+    catchClause: $ => seq("catch", "(", optional("var"), $.id, optional(seq(":", $.typeLiteral)), ")", $.statementBlock),
+    assertStatement: $ => seq("assert", $.expression, optional(seq(":", $.expression))),
+    usingStatement: $ => seq(
+      "using",
+      "(",
+      choice(seq($.localVarStatement, repeat(seq(",", $.localVarStatement))), $.expression),
+      ")",
+      $.statementBlock,
+      optional(seq("finally", $.statementBlock)),
+    ),
     returnStatement: $ => prec.right(seq("return", optional($.expression))),
+    whileStatement: $ => seq("while", "(", $.expression, ")", $.statement),
+    doWhileStatement: $ => seq("do", $.statement, "while", "(", $.expression, ")"),
+    switchStatement: $ => seq("switch", "(", $.expression, ")", "{", repeat($.switchBlockStatementGroup), "}"),
+    switchBlockStatementGroup: $ => seq(choice(seq("case", $.expression, ":"), seq("default", ":")), $.statement),
+    throwStatement: $ => seq("throw", $.expression),
     localVarStatement: $ => {
       // XXX check that it's correct for this to be right-associative
       return prec.right(seq("var", $.id, PossiblyEmpty.optionalType($), optional(seq("=", $.expression))));
     },
+    forEachStatement: $ => seq(
+      choice("foreach", "for"),
+      "(",
+      choice(seq($.expression, optional($.indexVar)), seq(optional("var"), $.id, "in", $.expression, optional($.indexRest))),
+      ")",
+      $.statement,
+    ),
+    indexRest: $ => choice(
+      seq($.indexVar, $.iteratorVar),
+      seq($.iteratorVar, $.indexVar),
+      $.indexVar,
+      $.iteratorVar,
+    ),
+    indexVar: $ => seq("index", $.id),
+    iteratorVar: $ => seq("iterator", $.id),
+    thisSuperExpr: _ => choice("this", "super"),
     assignmentOrMethodCall: $ => {
       // Without specifying an associativity for this rule the grammar
       // ambiguous. An example of the ambiguity is whether the following should
