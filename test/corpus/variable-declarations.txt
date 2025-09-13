@@ -3,55 +3,22 @@ Value declarations
 ==================
 
 public class Foo {
-  var _bar as Bar = "bar" // the 'as Bar' exposes this field as the property Bar
+  var _bar : String as Bar = "bar" // the 'as Bar' exposes this field as the property Bar
 }
 
 ---
 
 (start
-  (WS)
   (modifiers)
-  (WS)
   (gClass
-    (WS)
-    (id
-      (Ident))
-    (WS)
-    (classBody
-      (WS)
-      (WS)
-      (WS)
-      (declaration
-        (fieldDefn
-          (WS)
-          (id
-            (Ident))
-          (WS)
-          (WS)
-          (id
-            (Ident))
-          (WS)
-          (WS)
-          (expression
-            (conditionalExpr
-              (conditionalOrExpr
-                (conditionalAndExpr
-                  (bitwiseOrExpr
-                    (bitwiseXorExpr
-                      (bitwiseAndExpr
-                        (equalityExpr
-                          (relationalExpr
-                            (intervalExpr
-                              (bitshiftExpr
-                                (additiveExpr
-                                  (multiplicativeExpr
-                                    (typeAsExpr
-                                      (unaryExpr
-                                        (unaryExprNotPlusMinus
-                                          (primaryExpr
-                                            (literal
-                                              (StringLiteral)))))))))))))))))))))
-      (WS)
-      (LINE_COMMENT)
-      (WS)))
-  (WS))
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (fieldDefn
+            (id)
+            type: (type
+              (type_identifier))
+            as: (id)
+            value: (StringLiteral))))
+      (LINE_COMMENT))))
