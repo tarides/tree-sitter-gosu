@@ -3,7 +3,7 @@ Value declarations
 ==================
 
 public class Foo {
-  var _bar : String as Bar = "bar" // the 'as Bar' exposes this field as the property Bar
+  public var _bar : String as Bar = "bar" // the 'as Bar' exposes this field as the property Bar
 }
 
 ---
@@ -16,6 +16,7 @@ public class Foo {
       (classMembers
         (declaration
           (fieldDefn
+            (modifiers)
             (id)
             type: (type
               (type_identifier))

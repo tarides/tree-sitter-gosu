@@ -51,10 +51,12 @@ module.exports = grammar({
     ),
     classBody: $ => seq("{", optional($.classMembers), "}"),
     classMembers: $ => repeat1($.declaration),
-    declaration: $ => seq(optional($.modifiers), choice(
+    declaration: $ => choice(
       $.fieldDefn,
-    ), optional(";")),
+      // TODO
+    ),
     fieldDefn: $ => seq(
+      optional($.modifiers),
       "var",
       $.id,
       optional(seq(":",
@@ -62,7 +64,8 @@ module.exports = grammar({
       optional(seq("as",
         optional("readonly"), field("as", $.id))),
       optional(seq("=",
-        field("value", $._expression)))
+        field("value", $._expression))),
+      optional(";")
     ),
     type: $ =>
       choice($._type_identifier)
