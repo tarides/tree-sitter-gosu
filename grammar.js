@@ -74,15 +74,15 @@ module.exports = grammar({
     ),
     id: $ => token(seq(Letter, repeat(choice(Digit, Letter)))) ,
     StringLiteral: $ => choice(
-      seq("'", repeat(choice($.EscapeSequence, /[^'\\]+/)), "'"),
-      seq('"', repeat(choice($.EscapeSequence, /[^"\\]+/)), '"')
+      seq("'", /[^'\\]+/, "'"),
+      seq('"', /[^"\\]+/, '"')
     ),
-    HexDigit: $ => choice($.Digit, /[A-F]/, /[a-f]/),
     Digit: _ => Digit,
-    ZeroToSeven: _ => /[0-7]/,
-    EscapeSequence: $ => choice(seq("\\", choice("v", "a", "b", "t", "n", "f", "r", '"', "'", "\\", "$", "<")), $.UnicodeEscape, $.OctalEscape),
-    OctalEscape: $ => choice(seq("\\", /0-3/, $.ZeroToSeven, $.ZeroToSeven), seq("\\", $.ZeroToSeven, $.ZeroToSeven), seq("\\", $.ZeroToSeven)),
-    UnicodeEscape: $ => seq("\\u", $.HexDigit, $.HexDigit, $.HexDigit, $.HexDigit),
+    // HexDigit: $ => choice($.Digit, /[A-F]/, /[a-f]/),
+    // ZeroToSeven: _ => /[0-7]/,
+    // EscapeSequence: $ => choice(seq("\\", choice("v", "a", "b", "t", "n", "f", "r", '"', "'", "\\", "$", "<")), $.UnicodeEscape, $.OctalEscape),
+    // OctalEscape: $ => choice(seq("\\", /0-3/, $.ZeroToSeven, $.ZeroToSeven), seq("\\", $.ZeroToSeven, $.ZeroToSeven), seq("\\", $.ZeroToSeven)),
+    // UnicodeEscape: $ => seq("\\u", $.HexDigit, $.HexDigit, $.HexDigit, $.HexDigit),
     COMMENT: _ => /\/\*([^\*]|(\*[^\/]))*\*\//,
     LINE_COMMENT: _ => /\/\/[^\n\r]*/,
   }
