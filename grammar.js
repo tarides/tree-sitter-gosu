@@ -76,10 +76,11 @@ module.exports = grammar({
       "function", $.id, "(", ")",
       optional(seq("{", repeat($.statement), "}"))
     ),
-    statement: $ => seq(choice(
+    _statement: $ => choice(
       $.localVarStatement,
       $.assignmentOrMethodCall,
-    ), optional(";")),
+    ),
+    statement: $ => seq($._statement, optional(";")),
     localVarStatement: $ => seq(
       "var",
       $.id,
