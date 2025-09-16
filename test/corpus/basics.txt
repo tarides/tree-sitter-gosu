@@ -122,7 +122,8 @@ class Foo {
           (fieldDefn
             (id)
             type: (type
-              (type_identifier))
+              (type_identifier
+                (id)))
             value: (StringLiteral)))))))
 
 ==========
@@ -144,7 +145,8 @@ class Foo {
           (fieldDefn
             (id)
             type: (type
-              (type_identifier))
+              (type_identifier
+                (id)))
             as: (id)
             value: (StringLiteral)))))))
 

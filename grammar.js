@@ -97,10 +97,10 @@ module.exports = grammar({
       repeat($.indirectMemberAccess1),
     ),
     type: $ =>
-      choice($._type_identifier)
+      choice($.type_identifier)
       // prec.right(choice(seq($.classOrInterfaceType, repeat(seq("[", "]"))), seq("block", $.blockLiteral)));
     ,
-    _type_identifier: $ => alias($.id, $.type_identifier),
+    type_identifier: $ => $.id,
     _expression: $ => choice(
       $.StringLiteral
     ),
