@@ -1,0 +1,149 @@
+===========
+Empty class
+===========
+
+class Foo {}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody)))
+
+=================
+Field declaration
+=================
+
+class Foo {
+  var bar
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (fieldDefn
+            (id)))))))
+
+====================
+Field Initialization
+====================
+
+class Foo {
+  var bar = "bar"
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (fieldDefn
+            (id)
+            value: (StringLiteral)))))))
+
+=========
+Modifiers
+=========
+
+public class Foo {
+  private var bar
+}
+
+---
+
+(start
+  (modifiers)
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (fieldDefn
+            (modifiers)
+            (id)))))))
+
+============
+Line Comment
+============
+
+// This is a line comment
+class Foo {}
+
+---
+
+(start
+  (LINE_COMMENT)
+  (gClass
+    name: (id)
+    body: (classBody)))
+
+=============
+Block Comment
+=============
+
+/* This is the first line of a multiline comment
+   The comment continues on this line.
+   This is the last line. */
+class Foo {}
+
+---
+
+(start
+  (COMMENT)
+  (gClass
+    name: (id)
+    body: (classBody)))
+
+==========
+Field Type
+==========
+
+class Foo {
+  var bar : String = "bar"
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (fieldDefn
+            (id)
+            type: (type
+              (type_identifier))
+            value: (StringLiteral)))))))
+
+==========
+Properties
+==========
+
+class Foo {
+  var bar : String as Bar = "bar"
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (fieldDefn
+            (id)
+            type: (type
+              (type_identifier))
+            as: (id)
+            value: (StringLiteral)))))))
