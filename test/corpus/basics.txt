@@ -207,3 +207,80 @@ class Foo {}
   (gClass
     name: (id)
     body: (classBody)))
+
+==================
+Function Signature
+==================
+
+class Foo {
+    function foo()
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (functionDefn
+            (id)))))))
+
+========================
+Local Variable Statement
+========================
+
+class Foo {
+    function foo() {
+        var foo = "Bar"
+    }
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (functionDefn
+            (id)
+            (statement
+              (localVarStatement
+                (id)
+                value: (StringLiteral)))))))))
+
+===========
+Method Call
+===========
+
+class Foo {
+    function foo() {
+        bar()
+        baz.qux("arg")
+    }
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (functionDefn
+            (id)
+            (statement
+              (assignmentOrMethodCall
+                (id)
+                (indirectMemberAccess1)))
+            (statement
+              (assignmentOrMethodCall
+                (id)
+                (indirectMemberAccess1
+                  (id))
+                (indirectMemberAccess1
+                  (StringLiteral))))))))))

@@ -56,6 +56,7 @@ module.exports = grammar({
     classMembers: $ => repeat1($.declaration),
     declaration: $ => choice(
       $.fieldDefn,
+      $.functionDefn,
       // TODO
     ),
     fieldDefn: $ => seq(
@@ -69,6 +70,31 @@ module.exports = grammar({
       optional(seq("=",
         field("value", $._expression))),
       optional(";")
+    ),
+    // only 0 arg void functions for now
+    functionDefn: $ => seq(
+      "function", $.id, "(", ")",
+      optional(seq("{", repeat($.statement), "}"))
+    ),
+    statement: $ => seq(choice(
+      $.localVarStatement,
+      $.assignmentOrMethodCall,
+    ), optional(";")),
+    localVarStatement: $ => seq(
+      "var",
+      $.id,
+      optional(seq(":",
+        field("type", $.type))),
+      optional(seq("=",
+        field("value", $._expression))),
+    ),
+    indirectMemberAccess1: $ => choice(
+      seq(".", $.id),
+      seq("(", optional(seq($._expression, repeat(seq(",", $._expression)))), ")"),
+    ),
+    assignmentOrMethodCall: $ => seq(
+      $.id,
+      repeat($.indirectMemberAccess1),
     ),
     type: $ =>
       choice($._type_identifier)
