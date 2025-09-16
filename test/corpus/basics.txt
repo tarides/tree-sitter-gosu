@@ -147,3 +147,63 @@ class Foo {
               (type_identifier))
             as: (id)
             value: (StringLiteral)))))))
+
+===================
+Package Declaration
+===================
+
+package foo;
+
+class Foo {}
+
+---
+
+(start
+  (namespaceStatement
+    (id))
+  (gClass
+    name: (id)
+    body: (classBody)))
+
+============================
+Compound Package Declaration
+============================
+
+package foo.bar;
+
+class Foo {}
+
+---
+
+(start
+  (namespaceStatement
+    (id)
+    (id))
+  (gClass
+    name: (id)
+    body: (classBody)))
+
+===============
+Uses Statements
+===============
+
+uses foo;
+uses bar.bar;
+uses foo.bar.*;
+
+class Foo {}
+
+---
+
+(start
+  (usesStatement
+    (id))
+  (usesStatement
+    (id)
+    (id))
+  (usesStatement
+    (id)
+    (id))
+  (gClass
+    name: (id)
+    body: (classBody)))

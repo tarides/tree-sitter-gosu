@@ -28,13 +28,16 @@ module.exports = grammar({
 
   rules: {
     start: $ => seq(
-      // optional($.header),
+      optional(seq("package", $.namespaceStatement)),
+      repeat($.usesStatement),
       optional($.modifiers),
       choice($.gClass,
         // $.gInterfaceOrStructure, $.gEnum,
         // $.gEnhancement
       ),
     ),
+    namespaceStatement: $ => seq($.id, repeat(seq(".", $.id)), repeat(";")),
+    usesStatement: $ => seq("uses", seq($.id, repeat(seq(".", $.id)), optional(seq(".", "*"))), repeat(";")),
     modifiers: $ =>
       repeat1(choice(
         // $.annotation,
