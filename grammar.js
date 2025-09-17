@@ -112,14 +112,18 @@ module.exports = grammar({
     _type_identifier: $ => alias($.id, $.type_identifier),
     _expression: $ => choice(
       $.StringLiteral,
-      $.id
+      $.id,
+      $.additiveExpr
     ),
+    // FIXME: express in terms of multiplicativeExpr as in EBNF?
+    additiveExpr: $ => prec.left(seq($._expression, seq($.additiveOp, $._expression))),
     id: $ => token(seq(Letter, repeat(choice(Digit, Letter)))) ,
     StringLiteral: $ => choice(
       seq("'", /[^'\\]+/, "'"),
       seq('"', /[^"\\]+/, '"')
     ),
     Digit: _ => Digit,
+    additiveOp: _ => choice("+", "-", "?+", "?-"),
     // HexDigit: $ => choice($.Digit, /[A-F]/, /[a-f]/),
     // ZeroToSeven: _ => /[0-7]/,
     // EscapeSequence: $ => choice(seq("\\", choice("v", "a", "b", "t", "n", "f", "r", '"', "'", "\\", "$", "<")), $.UnicodeEscape, $.OctalEscape),
