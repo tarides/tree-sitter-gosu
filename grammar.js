@@ -111,7 +111,8 @@ module.exports = grammar({
     ,
     _type_identifier: $ => alias($.id, $.type_identifier),
     _expression: $ => choice(
-      $.StringLiteral
+      $.StringLiteral,
+      $.id
     ),
     id: $ => token(seq(Letter, repeat(choice(Digit, Letter)))) ,
     StringLiteral: $ => choice(
