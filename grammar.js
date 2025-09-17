@@ -32,9 +32,17 @@ module.exports = grammar({
       repeat($.usesStatement),
       optional($.modifiers),
       choice($.gClass,
-        // $.gInterfaceOrStructure, $.gEnum,
-        // $.gEnhancement
-      ),
+             // $.gInterfaceOrStructure, $.gEnum,
+             // $.gEnhancement
+
+             // NOTE: Allow we allow functionDefn, statement, etc. for parsing
+             // incomplete files, adding some support for Gosu programs and
+             // parsing patterns in Semgrep rules, even if this is not strictly
+             // allowed in Gosu's EBNF grammar. See also tree-sitter-java, for
+             // instance.
+             $.functionDefn,
+             $.statement,
+            ),
     ),
     namespaceStatement: $ => seq($.id, repeat(seq(".", $.id)), repeat(";")),
     usesStatement: $ => seq("uses", seq($.id, repeat(seq(".", $.id)), optional(seq(".", "*"))), repeat(";")),
