@@ -284,3 +284,31 @@ class Foo {
                   (id))
                 (indirectMemberAccess1
                   (StringLiteral))))))))))
+
+===================
+Additive Expression
+===================
+
+class Foo {
+    function foo() {
+        var bar = "baz" + "qux"
+    }
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (functionDefn
+            (id)
+            (statement
+              (localVarStatement
+                (id)
+                value: (additiveExpr
+                  (StringLiteral)
+                  (additiveOp)
+                  (StringLiteral))))))))))
