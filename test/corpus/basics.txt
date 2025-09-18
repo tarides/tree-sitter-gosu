@@ -397,3 +397,57 @@ class Foo {
                 (newExpr
                   (id)
                   (arguments))))))))))
+
+==================================
+Assign Variable from Function Call
+==================================
+
+class Foo {
+    function foo() {
+        var bar = baz()
+    }
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (functionDefn
+            (id)
+            (statement
+              (localVarStatement
+                (id)
+                value: (id)
+                value: (indirectMemberAccess1
+                  (arguments))))))))))
+
+===============================
+Assign Variable from Dot Access
+===============================
+
+class Foo {
+    function foo() {
+        var bar = baz.qux
+    }
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (functionDefn
+            (id)
+            (statement
+              (localVarStatement
+                (id)
+                value: (id)
+                value: (indirectMemberAccess1
+                  (id))))))))))

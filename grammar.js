@@ -114,12 +114,15 @@ module.exports = grammar({
       // prec.right(choice(seq($.classOrInterfaceType, repeat(seq("[", "]"))), seq("block", $.blockLiteral)));
     ,
     _type_identifier: $ => alias($.id, $.type_identifier),
-    _expression: $ => choice(
-      $.StringLiteral,
-      $.id,
-      $.additiveExpr,
-      $.newExpr,
-    ),
+    _expression: $ => prec.right(seq(
+      choice(
+        $.StringLiteral,
+        $.id,
+        $.additiveExpr,
+        $.newExpr,
+      ),
+      repeat($.indirectMemberAccess1),
+    )),
     // FIXME: express in terms of multiplicativeExpr as in EBNF?
     additiveExpr: $ => prec.left(seq($._expression, seq($.additiveOp, $._expression))),
     newExpr: $ => seq("new", $.id, $.arguments),
