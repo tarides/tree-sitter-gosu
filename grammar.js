@@ -97,9 +97,10 @@ module.exports = grammar({
       optional(seq("=",
         field("value", $._expression))),
     ),
+    arguments: $ => seq("(", optional(seq($._expression, repeat(seq(",", $._expression)))), ")"),
     indirectMemberAccess1: $ => choice(
       seq(".", $.id),
-      seq("(", optional(seq($._expression, repeat(seq(",", $._expression)))), ")"),
+      $.arguments,
     ),
     assignmentOrMethodCall: $ => seq(
       $.id,
@@ -113,10 +114,12 @@ module.exports = grammar({
     _expression: $ => choice(
       $.StringLiteral,
       $.id,
-      $.additiveExpr
+      $.additiveExpr,
+      $.newExpr,
     ),
     // FIXME: express in terms of multiplicativeExpr as in EBNF?
     additiveExpr: $ => prec.left(seq($._expression, seq($.additiveOp, $._expression))),
+    newExpr: $ => seq("new", $.id, $.arguments),
     id: $ => token(seq(Letter, repeat(choice(Digit, Letter)))) ,
     StringLiteral: $ => choice(
       seq("'", /[^'\\]+/, "'"),

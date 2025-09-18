@@ -276,14 +276,16 @@ class Foo {
             (statement
               (assignmentOrMethodCall
                 (id)
-                (indirectMemberAccess1)))
+                (indirectMemberAccess1
+                  (arguments))))
             (statement
               (assignmentOrMethodCall
                 (id)
                 (indirectMemberAccess1
                   (id))
                 (indirectMemberAccess1
-                  (StringLiteral))))))))))
+                  (arguments
+                    (StringLiteral)))))))))))
 
 ===================
 Additive Expression
@@ -312,3 +314,34 @@ class Foo {
                   (StringLiteral)
                   (additiveOp)
                   (StringLiteral))))))))))
+
+==============
+New Expression
+==============
+
+class Foo {
+    function foo() {
+        var bar = new Bar("baz" + "qux")
+    }
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (functionDefn
+            (id)
+            (statement
+              (localVarStatement
+                (id)
+                value: (newExpr
+                  (id)
+                  (arguments
+                    (additiveExpr
+                      (StringLiteral)
+                      (additiveOp)
+                      (StringLiteral))))))))))))
