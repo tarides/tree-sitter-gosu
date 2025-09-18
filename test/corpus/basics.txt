@@ -287,6 +287,32 @@ class Foo {
                   (arguments
                     (StringLiteral)))))))))))
 
+========================
+Method Call is Statement
+========================
+
+class Foo {
+    function foo() {
+        bar()
+    }
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (functionDefn
+            (id)
+            (statement
+              (assignmentOrMethodCall
+                (id)
+                (indirectMemberAccess1
+                  (arguments))))))))))
+
 ===================
 Additive Expression
 ===================
@@ -345,3 +371,29 @@ class Foo {
                       (StringLiteral)
                       (additiveOp)
                       (StringLiteral))))))))))))
+
+===========================
+New Expression is Statement
+===========================
+
+class Foo {
+    function foo() {
+        new Bar()
+    }
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (functionDefn
+            (id)
+            (statement
+              (assignmentOrMethodCall
+                (newExpr
+                  (id)
+                  (arguments))))))))))

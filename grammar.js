@@ -103,7 +103,10 @@ module.exports = grammar({
       $.arguments,
     ),
     assignmentOrMethodCall: $ => seq(
-      $.id,
+      choice(
+        $.id,
+        $.newExpr,
+      ),
       repeat($.indirectMemberAccess1),
     ),
     type: $ =>
