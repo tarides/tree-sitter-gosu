@@ -228,6 +228,35 @@ class Foo {
             (id)))))))
 
 ========================
+Function with Parameters
+========================
+
+class Foo {
+    function foo(a: String = "hello", b = "world") {
+    }
+}
+
+---
+
+(start
+  (gClass
+    name: (id)
+    body: (classBody
+      (classMembers
+        (declaration
+          (functionDefn
+            (id)
+            (parameterDeclarationList
+              (parameterDeclaration
+                (id)
+                type: (type
+                  (type_identifier))
+                value: (StringLiteral))
+              (parameterDeclaration
+                (id)
+                value: (StringLiteral)))))))))
+
+========================
 Local Variable Statement
 ========================
 

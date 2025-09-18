@@ -79,10 +79,18 @@ module.exports = grammar({
         field("value", $._expression))),
       optional(";")
     ),
-    // only 0 arg void functions for now
     functionDefn: $ => seq(
-      "function", $.id, "(", ")",
+      "function", $.id, "(", optional($.parameterDeclarationList), ")",
       optional(seq("{", repeat($.statement), "}"))
+    ),
+    parameterDeclarationList: $ => seq($.parameterDeclaration, repeat(seq(",", $.parameterDeclaration))),
+    parameterDeclaration: $ => seq(
+      $.id,
+      optional(choice(
+        seq(":", field("type", $.type), optional(seq("=", field("value", $._expression)))),
+        // TODO: $.blockTypeLiteral,
+        seq("=", field("value", $._expression)),
+      )),
     ),
     _statement: $ => choice(
       $.localVarStatement,
